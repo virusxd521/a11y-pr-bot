@@ -1,0 +1,53 @@
+name: "a11y-pr-bot"
+description: "Review pull requests for accessibility (a11y) violations and post inline + summary comments."
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  openrouter-api-key:
+    description: "OpenRouter API key for the LLM review pass. If omitted, runs in eslint-only (degraded) mode."
+    required: false
+    default: ""
+  model:
+    description: "OpenRouter model id used to explain findings and catch semantic issues."
+    required: false
+    default: "anthropic/claude-3.5-haiku"
+  min-severity:
+    description: "Lowest severity to report: critical | serious | moderate | minor."
+    required: false
+    default: "serious"
+  fail-on:
+    description: "Fail the check when issues at/above this severity exist: none | serious | critical."
+    required: false
+    default: "none"
+  globs:
+    description: "Comma-separated globs for UI files to review."
+    required: false
+    default: "**/*.{jsx,tsx}"
+  github-token:
+    description: "Token used to post comments. Defaults to the workflow token."
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Install a11y-pr-bot deps
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci || npm install
+    - name: Run accessibility review
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: node --import tsx src/index.ts
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        OPENROUTER_API_KEY: ${{ inputs.openrouter-api-key }}
+        OPENROUTER_MODEL: ${{ inputs.model }}
+        A11Y_MIN_SEVERITY: ${{ inputs.min-severity }}
+        A11Y_FAIL_ON: ${{ inputs.fail-on }}
+        A11Y_GLOBS: ${{ inputs.globs }}
