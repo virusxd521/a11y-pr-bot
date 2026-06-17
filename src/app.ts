@@ -1,15 +1,18 @@
 import type { Probot } from "probot";
 import { reviewPullRequest } from "./core";
+import { resolveLlmConfig } from "./llm-config";
 import type { Config, FailOn, Severity } from "./types";
 
 // Config for the App comes purely from env (set once on the host).
 function appConfig(): Config {
+  const { apiKey, baseURL, model } = resolveLlmConfig();
   return {
     mode: "pr",
     files: [],
     workspace: "",
-    model: process.env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku",
-    apiKey: process.env.OPENROUTER_API_KEY,
+    model,
+    apiKey,
+    baseURL,
     minSeverity: (process.env.A11Y_MIN_SEVERITY ?? "serious") as Severity,
     failOn: (process.env.A11Y_FAIL_ON ?? "none") as FailOn,
     globs: (process.env.A11Y_GLOBS ?? "**/*.{jsx,tsx}").split(",").map((s) => s.trim()),

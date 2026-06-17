@@ -48,6 +48,7 @@ async function reviewFileContent(
     eslintFindings: eslintForFile,
     model: cfg.model,
     apiKey: cfg.apiKey,
+    baseURL: cfg.baseURL,
   });
 
   const enrichedBase = eslintForFile.map((f) => {

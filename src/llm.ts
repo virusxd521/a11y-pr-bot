@@ -39,13 +39,12 @@ export async function llmReview(input: {
   eslintFindings: Finding[];
   model: string;
   apiKey: string;
+  baseURL?: string;
 }): Promise<LlmResult> {
-  const { file, content, eslintFindings, model, apiKey } = input;
+  const { file, content, eslintFindings, model, apiKey, baseURL } = input;
 
-  const client = new OpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey,
-  });
+  // baseURL omitted → OpenAI's default endpoint; set → OpenRouter (or any OpenAI-compatible host).
+  const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
 
   const linterSummary = eslintFindings.length
     ? eslintFindings.map((f) => `- line ${f.line}: ${f.ruleOrIssue} — ${f.explanation}`).join("\n")

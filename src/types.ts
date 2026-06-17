@@ -21,6 +21,7 @@ export type Config = {
   workspace: string; // repo root (GITHUB_WORKSPACE or cwd)
   model: string;
   apiKey?: string;
+  baseURL?: string;
   minSeverity: Severity;
   failOn: FailOn;
   globs: string[];

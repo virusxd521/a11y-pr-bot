@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getOctokit, context } from "@actions/github";
 import { runReview, reviewPullRequest, byLoc, type ReviewInput } from "./core";
+import { resolveLlmConfig } from "./llm-config";
 import { meetsMin } from "./severity";
 import type { Config, FailOn, Finding, Severity } from "./types";
 
@@ -20,12 +21,14 @@ function loadConfig(): Config {
   const positional = process.argv.slice(2).filter((a) => !a.startsWith("--") && /\.(jsx|tsx)$/.test(a));
   const files = filesArg ? filesArg.split(",").map((s) => s.trim()).filter(Boolean) : positional;
 
+  const { apiKey, baseURL, model } = resolveLlmConfig(arg("--model"));
   return {
     mode,
     files,
     workspace: process.env.GITHUB_WORKSPACE || process.cwd(),
-    model: arg("--model") ?? process.env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku",
-    apiKey: process.env.OPENROUTER_API_KEY,
+    model,
+    apiKey,
+    baseURL,
     minSeverity: (arg("--min-severity") ?? process.env.A11Y_MIN_SEVERITY ?? "serious") as Severity,
     failOn: (process.env.A11Y_FAIL_ON ?? "none") as FailOn,
     globs: (process.env.A11Y_GLOBS ?? "**/*.{jsx,tsx}").split(",").map((s) => s.trim()),
