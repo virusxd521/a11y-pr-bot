@@ -34,14 +34,13 @@ function stripFences(text: string): string {
 }
 
 export async function llmReview(input: {
-  absPath: string;
-  relPath: string;
+  file: string;
   content: string;
   eslintFindings: Finding[];
   model: string;
   apiKey: string;
 }): Promise<LlmResult> {
-  const { absPath, relPath, content, eslintFindings, model, apiKey } = input;
+  const { file, content, eslintFindings, model, apiKey } = input;
 
   const client = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
@@ -53,7 +52,7 @@ export async function llmReview(input: {
     : "(none)";
 
   const user = [
-    `File: ${relPath}`,
+    `File: ${file}`,
     "",
     "Existing eslint-plugin-jsx-a11y findings:",
     linterSummary,
@@ -77,7 +76,7 @@ export async function llmReview(input: {
     });
     raw = res.choices[0]?.message?.content ?? "";
   } catch (err) {
-    console.error(`[llm] request failed for ${relPath}: ${(err as Error).message}`);
+    console.error(`[llm] request failed for ${file}: ${(err as Error).message}`);
     return EMPTY;
   }
 
@@ -85,7 +84,7 @@ export async function llmReview(input: {
   try {
     parsed = JSON.parse(stripFences(raw));
   } catch {
-    console.error(`[llm] could not parse JSON for ${relPath}; skipping LLM pass for this file`);
+    console.error(`[llm] could not parse JSON for ${file}; skipping LLM pass for this file`);
     return EMPTY;
   }
 
@@ -104,7 +103,7 @@ export async function llmReview(input: {
     ? parsed.additional
         .filter((a: any) => typeof a?.line === "number")
         .map((a: any) => ({
-          file: absPath,
+          file,
           line: a.line,
           ruleOrIssue: String(a.issue ?? "Accessibility issue"),
           wcag: a.wcag ? String(a.wcag) : undefined,

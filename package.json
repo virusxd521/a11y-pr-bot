@@ -6,6 +6,7 @@
   "description": "QODO-style GitHub bot that reviews pull requests for accessibility (a11y) violations and posts inline + summary comments.",
   "scripts": {
     "review": "tsx src/index.ts",
+    "app": "tsx src/server.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "openai": "^4.77.3",
+    "probot": "^13.4.5",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
