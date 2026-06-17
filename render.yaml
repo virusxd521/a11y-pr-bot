@@ -8,7 +8,6 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start
-    healthCheckPath: /probot
     envVars:
       - key: NODE_VERSION
         value: "20"
