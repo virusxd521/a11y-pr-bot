@@ -7,18 +7,20 @@ export function resolveLlmConfig(explicitModel?: string): {
 } {
   const openaiKey = process.env.OPENAI_API_KEY;
   const openrouterKey = process.env.OPENROUTER_API_KEY;
+  const useOpenAI = !!openaiKey;
   const apiKey = openaiKey ?? openrouterKey;
 
   // OpenAI uses the SDK's default endpoint (no baseURL); OpenRouter needs its own.
   const baseURL =
-    process.env.LLM_BASE_URL ??
-    (openaiKey ? undefined : openrouterKey ? "https://openrouter.ai/api/v1" : undefined);
+    process.env.LLM_BASE_URL ?? (useOpenAI ? undefined : openrouterKey ? "https://openrouter.ai/api/v1" : undefined);
 
+  // Provider-aware model: never feed an OpenRouter model id to OpenAI (or vice versa).
   const model =
     explicitModel ??
     process.env.LLM_MODEL ??
-    process.env.OPENROUTER_MODEL ??
-    (openaiKey ? "gpt-4o-mini" : "anthropic/claude-3.5-haiku");
+    (useOpenAI
+      ? process.env.OPENAI_MODEL ?? "gpt-4o-mini"
+      : process.env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku");
 
   return { apiKey, baseURL, model };
 }
