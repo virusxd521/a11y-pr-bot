@@ -2,6 +2,7 @@ import type { Finding, Severity } from "./types";
 import { SEVERITY_ORDER, compareSeverity } from "./severity";
 
 const MARKER = "<!-- a11y-pr-bot -->";
+const INLINE_MARKER = "flagged by a11y-pr-bot";
 
 const sevLabel = (s: Severity) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -10,7 +11,7 @@ export function renderInlineBody(f: Finding): string {
   const rule = f.source === "eslint" ? `\`${f.ruleOrIssue}\`` : `**${f.ruleOrIssue}**`;
   let body = `**a11y · ${sevLabel(f.severity)}**${wcag} — ${rule}\n\n${f.explanation}`;
   if (f.suggestedFix) body += `\n\n**Fix:** ${f.suggestedFix}`;
-  body += `\n\n<sub>flagged by a11y-pr-bot</sub>`;
+  body += `\n\n<sub>${INLINE_MARKER}</sub>`;
   return body;
 }
 
@@ -81,6 +82,23 @@ export async function postReview(
     await octokit.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: summaryBody });
   } else {
     await octokit.rest.issues.createComment({ owner, repo, issue_number: pull_number, body: summaryBody });
+  }
+
+  // Remove this bot's prior inline comments so re-runs replace rather than stack them.
+  const priorReviewComments = await octokit.paginate(octokit.rest.pulls.listReviewComments, {
+    owner,
+    repo,
+    pull_number,
+    per_page: 100,
+  });
+  for (const c of priorReviewComments) {
+    if (typeof c.body === "string" && c.body.includes(INLINE_MARKER)) {
+      try {
+        await octokit.rest.pulls.deleteReviewComment({ owner, repo, comment_id: c.id });
+      } catch {
+        // best-effort cleanup; a stale comment is not fatal
+      }
+    }
   }
 
   if (inline.length === 0) return;

@@ -26,6 +26,17 @@ export function SignupCard() {
 
       {/* status conveyed by color alone (semantic, LLM-only) */}
       <span style={{ color: "red" }}>Failed</span>
+
+      {/* --- added in this PR: should appear as INLINE comments --- */}
+
+      {/* alt-text: decorative icon still needs alt="" */}
+      <img src="/avatar.png" className="avatar" />
+
+      {/* no-static-element-interactions + click-events-have-key-events */}
+      <span onClick={() => window.print()}>Print receipt</span>
+
+      {/* iframe-has-title */}
+      <iframe src="/embed/map" />
     </section>
   );
 }
