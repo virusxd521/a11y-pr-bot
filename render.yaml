@@ -1,0 +1,29 @@
+# Render Blueprint — deploys the GitHub App as an always-on webhook server.
+# New + → Blueprint → connect this repo → Render reads this file.
+# Set the `sync: false` vars (secrets) in the Render dashboard after the first deploy.
+services:
+  - type: web
+    name: a11y-pr-bot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /probot
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: A11Y_MIN_SEVERITY
+        value: serious
+      # --- secrets: set these in the Render dashboard (Environment tab) ---
+      - key: APP_ID
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false

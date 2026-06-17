@@ -46,12 +46,23 @@ After registration, GitHub offers an **Install** button → choose **All reposit
 
 Open any PR that changes a `.jsx`/`.tsx` file in **any** installed repo → the bot comments automatically. Restart-safe and idempotent (summary upserts, inline comments replaced on re-run).
 
-## 5. Production (always-on)
+## 5. Production on Render (always-on, QODO-style)
 
-`npm run app` on your laptop only works while the laptop is running. For real fleet use, deploy the same server to an always-on host and set a real webhook URL (no smee):
+`npm run app` on your laptop only works while the laptop is on. To run 24/7 like QODO, deploy the same server to Render. The repo already includes `render.yaml`.
 
-- Any Node host (Render, Railway, Fly.io, a small VM) — run `npm run app` with `APP_ID` / `PRIVATE_KEY` / `WEBHOOK_SECRET` / `OPENROUTER_API_KEY` as env vars, and point the App's webhook URL at it.
-- Set the App's **Webhook URL** (in its GitHub settings) to `https://<your-host>/api/github/webhooks`.
+Do step 1 first (registering the App gives you `APP_ID` / `PRIVATE_KEY` / `WEBHOOK_SECRET`). Then:
+
+1. **Render → New + → Blueprint** → connect the `a11y-pr-bot` repo. Render reads `render.yaml` and creates the web service.
+2. **Environment tab** → set the four secrets:
+   - `APP_ID`, `WEBHOOK_SECRET`, `OPENROUTER_API_KEY`
+   - `PRIVATE_KEY` — paste the whole `.pem` contents (including the `-----BEGIN/END-----` lines).
+3. After it deploys, copy the service URL, e.g. `https://a11y-pr-bot.onrender.com`.
+4. **GitHub → the App's settings → Webhook URL** → set it to `https://a11y-pr-bot.onrender.com/api/github/webhooks` (and the same `WEBHOOK_SECRET`).
+5. **Install** the App on your repos → "All repositories". Done.
+
+Now every PR in every installed repo is reviewed, with no workflow file anywhere.
+
+> Free tier note: Render's free web service sleeps after ~15 min idle, so the first PR after a quiet spell waits ~30–60s for cold start (GitHub retries webhooks, so nothing is lost). Upgrade the plan to keep it always warm.
 
 Nothing changes per repo — installing/uninstalling the App is the only knob.
 
